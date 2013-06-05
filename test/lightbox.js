@@ -72,4 +72,15 @@ $(function() {
     ok(lb.fits({ w: Infinity, h: Infinity}), 'Fits');
   });
 
+  test('getMaxSize', function() {
+    var elem = $('.lightbox', container)[0],
+        lb = prepare(elem, function(node) { return new treesaver.ui.LightBox(node); }),
+        node = lb.activate();
+    $(node).appendTo('.testonly');
+
+    var size = lb.getMaxSize();
+
+    equal(typeof size, 'object', 'Returns a size');
+  });
+
 });
