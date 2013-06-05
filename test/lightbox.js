@@ -3,6 +3,15 @@ goog.require('treesaver.ui.LightBox');
 $(function() {
   var container;
 
+  var prepare = function prepare(node, callback) {
+    var div = document.createElement('div');
+    document.body.appendChild(div);
+    div.appendChild(node);
+    var ret = callback(node);
+    document.body.removeChild(div);
+    return ret;
+  };
+
   module('lightbox', {
     setup: function () {
       // Create an HTML tree for test data
@@ -39,12 +48,8 @@ $(function() {
   });
 
   test('Construction', function() {
-    var node = $('.lightbox', container)[0],
-        div = document.createElement('div');
-    document.body.appendChild(div);
-    div.appendChild(node)
-    var lb = new treesaver.ui.LightBox(node);
-    div.removeChild(node)
+    var elem = $('.lightbox', container)[0],
+        lb = prepare(elem, function(node) { return new treesaver.ui.LightBox(node); });
 
     // Sanity check for now, will fill in real tests later
     ok(lb, 'Object created');
@@ -54,12 +59,8 @@ $(function() {
   });
 
   test('activate', function() {
-    var node = $('.lightbox', container)[0],
-        div = document.createElement('div');
-    document.body.appendChild(div);
-    div.appendChild(node);
-    var lb = new treesaver.ui.LightBox(node);
-    div.removeChild(node);
+    var elem = $('.lightbox', container)[0],
+        lb = prepare(elem, function(node) { return new treesaver.ui.LightBox(node); });
 
     var node = lb.activate();
 
