@@ -164,7 +164,9 @@ goog.scope(function() {
       containedImages = dom.querySelectorAll('img', this.container);
       if (containedImages) {
         containedImages.forEach(function(img) {
-          events.addListener(img, 'load', LightBox._imageLoaded.bind(self, figure));
+          events.addListener(img, 'load', function() {
+            self.centerFigure(containerSize, figure);
+          });
           // cached images don't fire load sometimes, so we reset src.
           if (img.complete || img.complete === undefined){
              var src = img.src;
@@ -176,7 +178,7 @@ goog.scope(function() {
         });
       }
 
-      this.centerFigure(figure);
+      this.centerFigure(containerSize, figure);
       return true;
     }
     else {
@@ -187,7 +189,7 @@ goog.scope(function() {
   /**
    * @param {!treesaver.layout.Figure} figure
    */
-  LightBox.prototype.centerFigure = function(figure) {
+  LightBox.prototype.centerFigure = function(containerSize, figure) {
     var screenW = dimensions.getOffsetWidth(this.container.offsetParent),
         screenH = dimensions.getOffsetHeight(this.container.offsetParent),
         contentW, contentH, metrics;
@@ -256,12 +258,5 @@ goog.scope(function() {
     }
 
     return lightbox;
-  };
-
-  LightBox._imageLoaded = function(figure, e) {
-    debug.info('Image loaded');
-    console.info(e);
-    console.info(this);
-    this.centerFigure(figure);
   };
 });
