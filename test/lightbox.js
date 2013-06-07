@@ -129,7 +129,7 @@ $(function() {
   test('showFigure with a slow image', function() {
     var lb = createLightbox(),
         node = activateLightbox(lb, 4000, 3000),
-        figure = createFigure(20, '<img data-src="http://edmullen.net/test/rc.jpg" style="vertical-align: top">');
+        figure = createFigure(20, '<img data-src="http://placehold.it/3264x2448" style="vertical-align: top">');
 
     var rc = lb.showFigure(figure);
     equal(rc, true, 'Returns true');
@@ -140,5 +140,16 @@ $(function() {
     equal(fc.offsetHeight, 2448, 'Lightbox container height');
     equal($(fc).css('top'), '276px', 'Lightbox container top');
     equal($(fc).css('left'), '368px', 'Lightbox container left');
+
+    stop(2000);
+
+    setTimeout(function() {
+      equal(fc.offsetWidth, 3264, 'Lightbox container width');
+      equal(fc.offsetHeight, 2448, 'Lightbox container height');
+      equal($(fc).css('top'), '276px', 'Lightbox container top');
+      equal($(fc).css('left'), '368px', 'Lightbox container left');
+
+      start();
+    }, 1000);
   });
 });

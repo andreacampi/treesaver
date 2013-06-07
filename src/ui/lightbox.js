@@ -8,6 +8,7 @@ goog.require('treesaver.capabilities');
 goog.require('treesaver.debug');
 goog.require('treesaver.dimensions');
 goog.require('treesaver.dom');
+goog.require('treesaver.events');
 goog.require('treesaver.ui.Scrollable');
 
 goog.scope(function() {
@@ -51,6 +52,7 @@ goog.scope(function() {
       debug = treesaver.debug,
       dimensions = treesaver.dimensions,
       dom = treesaver.dom,
+      events = treesaver.events,
       Scrollable = treesaver.ui.Scrollable;
 
   /**
@@ -143,12 +145,11 @@ goog.scope(function() {
    * @param {!treesaver.layout.Figure} figure
    */
   LightBox.prototype.showFigure = function(figure) {
-    var containerSize = this.getMaxSize(),
+    var self = this,
+        containerSize = this.getMaxSize(),
         largest = figure.getLargestSize(containerSize, true),
-        screenW = dimensions.getOffsetWidth(this.container.offsetParent),
-        screenH = dimensions.getOffsetHeight(this.container.offsetParent),
         scrollNode,
-        contentW, contentH, metrics;
+        containedImages, i;
 
     // TODO: Provide name for sizing via CSS?
 
@@ -160,30 +161,56 @@ goog.scope(function() {
       this.container.style.bottom = 'auto';
       this.container.style.right = 'auto';
 
-      // What's the size of the content?
-      // TODO: Refactor to query only needed properties
-      metrics = new dimensions.Metrics(this.container);
-      contentW = metrics.w;
-      contentH = metrics.h;
-
-      // Clamp in case of scrolling
-      if (figure.scrollable) {
-        contentW = Math.min(containerSize.w, contentW);
-        contentH = Math.min(containerSize.h, contentH);
-        dimensions.setCssPx(this.container, 'width', contentW);
-        dimensions.setCssPx(this.container, 'height', contentH);
-        dom.addClass(this.container, 'scroll');
-        Scrollable.initDom(this.container);
+      containedImages = dom.querySelectorAll('img', this.container);
+      if (containedImages) {
+        containedImages.forEach(function(img) {
+          events.addListener(img, 'load', LightBox._imageLoaded.bind(self, figure));
+          // cached images don't fire load sometimes, so we reset src.
+          if (img.complete || img.complete === undefined){
+             var src = img.src;
+             // webkit hack from http://groups.google.com/group/jquery-dev/browse_thread/thread/eee6ab7b2da50e1f
+             // data uri bypasses webkit log warning (thx doug jones)
+             img.src = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==";
+             img.src = src;
+          }
+        });
       }
 
-      // Center the container on the screen (use offsetWidth to include border/padding)
-      dimensions.setCssPx(this.container, 'left', (screenW - contentW - metrics.bpWidth) / 2);
-      dimensions.setCssPx(this.container, 'top', (screenH - contentH - metrics.bpHeight) / 2);
+      this.centerFigure(figure);
       return true;
     }
     else {
       return false;
     }
+  };
+
+  /**
+   * @param {!treesaver.layout.Figure} figure
+   */
+  LightBox.prototype.centerFigure = function(figure) {
+    var screenW = dimensions.getOffsetWidth(this.container.offsetParent),
+        screenH = dimensions.getOffsetHeight(this.container.offsetParent),
+        contentW, contentH, metrics;
+
+    // What's the size of the content?
+    // TODO: Refactor to query only needed properties
+    metrics = new dimensions.Metrics(this.container);
+    contentW = metrics.w;
+    contentH = metrics.h;
+
+    // Clamp in case of scrolling
+    if (figure.scrollable) {
+      contentW = Math.min(containerSize.w, contentW);
+      contentH = Math.min(containerSize.h, contentH);
+      dimensions.setCssPx(this.container, 'width', contentW);
+      dimensions.setCssPx(this.container, 'height', contentH);
+      dom.addClass(this.container, 'scroll');
+      Scrollable.initDom(this.container);
+    }
+
+    // Center the container on the screen (use offsetWidth to include border/padding)
+    dimensions.setCssPx(this.container, 'left', (screenW - contentW - metrics.bpWidth) / 2);
+    dimensions.setCssPx(this.container, 'top', (screenH - contentH - metrics.bpHeight) / 2);
   };
 
   /**
@@ -229,5 +256,12 @@ goog.scope(function() {
     }
 
     return lightbox;
+  };
+
+  LightBox._imageLoaded = function(figure, e) {
+    debug.info('Image loaded');
+    console.info(e);
+    console.info(this);
+    this.centerFigure(figure);
   };
 });
