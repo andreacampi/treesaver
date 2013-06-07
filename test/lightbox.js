@@ -25,17 +25,16 @@ $(function() {
     return node;
   }
 
-  var createFigure = function createFigure(lineHeight) {
+  var createFigure = function createFigure(lineHeight, content) {
     var indices = {
           index: 0,
           figureIndex: 0
         },
         f = $('<figure></figure>').addClass('testonly').appendTo('body');
 
-    f.html(
-       '<div data-requires="no-offline" data-sizes="four">' +
-         '<p style="width: 40px !important">Content</p>' +
-       '</div>');
+    if (!content) { content = '<p style="width: 40px !important">Content</p>'; }
+
+    f.html('<div data-requires="no-offline" data-sizes="four">' + content +'</div>');
 
     return new treesaver.layout.Figure(f[0], lineHeight, indices);
   };
@@ -125,5 +124,21 @@ $(function() {
     equal(fc.offsetHeight, 20, 'Lightbox container height');
     equal($(fc).css('top'), '40px', 'Lightbox container top');
     equal($(fc).css('left'), '30px', 'Lightbox container left');
+  });
+
+  test('showFigure with a slow image', function() {
+    var lb = createLightbox(),
+        node = activateLightbox(lb, 4000, 3000),
+        figure = createFigure(20, '<img data-src="http://edmullen.net/test/rc.jpg" style="vertical-align: top">');
+
+    var rc = lb.showFigure(figure);
+    equal(rc, true, 'Returns true');
+
+    var fc = $('.container', node)[0];
+
+    equal(fc.offsetWidth, 3264, 'Lightbox container width');
+    equal(fc.offsetHeight, 2448, 'Lightbox container height');
+    equal($(fc).css('top'), '276px', 'Lightbox container top');
+    equal($(fc).css('left'), '368px', 'Lightbox container left');
   });
 });
