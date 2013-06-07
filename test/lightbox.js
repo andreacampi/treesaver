@@ -12,6 +12,34 @@ $(function() {
     return ret;
   };
 
+  var createLightbox = function createLightbox() {
+    var elem = $('.lightbox', container)[0];
+    return prepare(elem, function(node) { return new treesaver.ui.LightBox(node); });
+  };
+
+  var activateLightbox = function activateLightbox(lb, width, height) {
+    var fake_body = $('.testonly'),
+        node = lb.activate();
+    $(node).appendTo(fake_body);
+    $(fake_body).css({top: 0, bottom: 0, width: width, height: height});
+    return node;
+  }
+
+  var createFigure = function createFigure(lineHeight) {
+    var indices = {
+          index: 0,
+          figureIndex: 0
+        },
+        f = $('<figure></figure>').addClass('testonly').appendTo('body');
+
+    f.html(
+       '<div data-requires="no-offline" data-sizes="four">' +
+         '<p style="width: 40px !important">Content</p>' +
+       '</div>');
+
+    return new treesaver.layout.Figure(f[0], lineHeight, indices);
+  };
+
   module('lightbox', {
     setup: function () {
       // Create an HTML tree for test data
@@ -83,4 +111,19 @@ $(function() {
     equal(typeof size, 'object', 'Returns a size');
   });
 
+  test('showFigure', function() {
+    var lb = createLightbox(),
+        node = activateLightbox(lb, 100, 100),
+        figure = createFigure(20);
+
+    var rc = lb.showFigure(figure);
+    equal(rc, true, 'Returns true');
+
+    var fc = $('.container', node)[0];
+
+    equal(fc.offsetWidth, 40, 'Lightbox container width');
+    equal(fc.offsetHeight, 20, 'Lightbox container height');
+    equal($(fc).css('top'), '40px', 'Lightbox container top');
+    equal($(fc).css('left'), '30px', 'Lightbox container left');
+  });
 });
